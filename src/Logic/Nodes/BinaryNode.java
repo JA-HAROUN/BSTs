@@ -1,11 +1,18 @@
 package Logic.Nodes;
 
-public abstract class BinaryNode {
+public class BinaryNode {
 
     private BinaryNode parent;
     private BinaryNode left;
     private BinaryNode right;
-    private int value;
+    private Integer value;
+
+    public BinaryNode() {
+        this.value = null;
+        this.parent = null;
+        this.left = null;
+        this.right = null;
+    }
 
     public BinaryNode(int value) {
         this.value = value;
@@ -28,11 +35,11 @@ public abstract class BinaryNode {
         this.right = right;
     }
 
-    public int getValue() {
+    public Integer getValue() {
         return value;
     }
 
-    public void setValue(int value) {
+    public void setValue(Integer value) {
         this.value = value;
     }
 

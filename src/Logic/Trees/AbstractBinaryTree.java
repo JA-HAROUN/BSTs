@@ -1,6 +1,7 @@
 package Logic.Trees;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 import Logic.Nodes.BinaryNode;
 
@@ -18,20 +19,34 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         stack = new Stack<>();
     }
 
-    public boolean insert(int v);
+    // Basic Tree Operations
+    public boolean insert(int v) {
+        BinaryNode node = insertNode(v);
+        if (node == null) {
+            // Duplicate
+            return false;
+        }
 
-    public boolean delete(int v);
+        // Rebalance
+        rebalance(node);
+
+        return true;
+    }
+
+    public boolean delete(int v) {
+        BinaryNode node = search(v);
+        if (node == null) {
+            return false;
+        }
+
+        deleteNode(node);
+        size--;
+        return true;
+    }
 
     public boolean contains(int v) {
         BinaryNode node = search(v);
         return (node == null) ? false : true;
-    }
-
-    public int[] orderedSet() {
-        orderedSet.clear();
-        stack.clear();
-        inTraverse(root);
-        return orderedSet.toArray(new Integer[0]);
     }
 
     public int height() {
@@ -42,7 +57,14 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         return size;
     }
 
-    // Helper functions
+    public int[] inOrder() {
+        orderedSet.clear();
+        stack.clear();
+        inTraverse(root);
+        return orderedSet.stream().mapToInt(i -> i).toArray();
+    }
+
+    // Search & Successor / Predecessor Helpers
     public BinaryNode search(int v) {
         if (root == null) {
             return null;
@@ -50,7 +72,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
 
         BinaryNode current = root;
 
-        while (current != null && current.value != v) {
+        while (current != null && current.getValue() != v) {
             if (current.getValue() == v) {
                 return current;
             } else if (current.getValue() >= v) {
@@ -107,54 +129,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         }
     }
 
-    public int DFS(BinaryNode node) {
-        int leftHeight = 0;
-        int rightHeight = 0;
-        if (node.getLeft() != null) {
-            leftHeight = DFS(node.getLeft());
-        }
-        if (node.getRight() != null) {
-            rightHeight = DFS(node.getRight());
-        }
-        return Math.max(leftHeight, rightHeight) + 1;
-    }
-
-    public BinaryTree insertNode(int v) {
-
-        if (root == null) {
-            root = new BinaryNode(v);
-            size++;
-            return this;
-        }
-
-        BinaryNode current = root;
-        BinaryNode parent = null;
-        while (current != null) {
-            parent = current;
-            if (current.getValue == v) {
-                // Duplicate
-                return null;
-            }
-            if (current.getValue > v) {
-                current = current.getLeft();
-            } else {
-                current = current.getRight();
-            }
-        }
-
-        BinaryNode newNode = new BinaryNode(v, parent);
-
-        if (parent.getValue > v) {
-            parent.setLeft(newNode);
-        } else {
-            parent.setRight(newNode);
-        }
-
-        size++;
-        return newNode;
-
-    }
-
+    // Tree Traversals
     public void inTraverse(BinaryNode node) {
         if (node == null) {
             return;
@@ -167,11 +142,9 @@ public abstract class AbstractBinaryTree implements BinaryTree {
             orderedSet.add(node.getValue());
             goDeepLeft(node.getRight());
         }
-
     }
 
     public void preTraverse(BinaryNode node) {
-
         if (node == null) {
             return;
         }
@@ -188,11 +161,9 @@ public abstract class AbstractBinaryTree implements BinaryTree {
                 stack.push(node.getLeft());
             }
         }
-
     }
 
     public void postTraverse(BinaryNode node) {
-
         if (node == null) {
             return;
         }
@@ -209,7 +180,6 @@ public abstract class AbstractBinaryTree implements BinaryTree {
                 iterator = iterator.getRight();
             }
         }
-
     }
 
     public void goDeepLeft(BinaryNode node) {
@@ -218,5 +188,31 @@ public abstract class AbstractBinaryTree implements BinaryTree {
             node = node.getLeft();
         }
     }
+
+    public void goDeepRight(BinaryNode node) {
+        while (node != null) {
+            stack.push(node);
+            node = node.getRight();
+        }
+    }
+
+    public int DFS(BinaryNode node) {
+        int leftHeight = 0;
+        int rightHeight = 0;
+        if (node.getLeft() != null) {
+            leftHeight = DFS(node.getLeft());
+        }
+        if (node.getRight() != null) {
+            rightHeight = DFS(node.getRight());
+        }
+        return Math.max(leftHeight, rightHeight) + 1;
+    }
+
+    // Abstract Methods
+    protected abstract BinaryNode insertNode(int v);
+
+    protected abstract void rebalance(BinaryNode node);
+
+    protected abstract void deleteNode(BinaryNode node);
 
 }

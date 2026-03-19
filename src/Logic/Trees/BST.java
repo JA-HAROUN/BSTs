@@ -1,7 +1,5 @@
 package Logic.Trees;
 
-import java.util.ArrayList;
-
 import Logic.Nodes.BinaryNode;
 
 public class BST extends AbstractBinaryTree {
@@ -10,27 +8,54 @@ public class BST extends AbstractBinaryTree {
         super();
     }
 
-    public boolean insert(int v) {
-        BinaryNode node = insertNode(v);
-        if (node == null) {
-            // Duplicate
-            return false;
-        } else {
-            return true;
+    // Insert
+    @Override
+    protected BinaryNode insertNode(int v) {
+
+        if (root == null) {
+            root = new BinaryNode(v);
+            size++;
+            return root;
         }
+
+        BinaryNode current = root;
+        BinaryNode parent = null;
+        while (current != null) {
+            parent = current;
+            if (current.getValue() == v) {
+                // Duplicate
+                return null;
+            }
+            if (current.getValue() > v) {
+                current = current.getLeft();
+            } else {
+                current = current.getRight();
+            }
+        }
+
+        BinaryNode newNode = new BinaryNode(v, parent);
+
+        if (parent.getValue() > v) {
+            parent.setLeft(newNode);
+        } else {
+            parent.setRight(newNode);
+        }
+
+        size++;
+        return newNode;
+
     }
 
-    public boolean delete(int v) {
-        BinaryNode node = search(v);
-        if (node == null) {
-            // Not found
-            return false;
-        }
+    @Override
+    protected void rebalance(BinaryNode node) {
+        return;
+    }
 
-        boolean isLeftChild = node.getParent().getLeft() == node;
+    // Delete
+    @Override
+    protected void deleteNode(BinaryNode node) {
         boolean hasLeftChild = node.getLeft() != null;
         boolean hasRightChild = node.getRight() != null;
-
         // Case 1: No Children
         if (!hasLeftChild && !hasRightChild) {
             deleteCaseOne(node);
@@ -43,10 +68,9 @@ public class BST extends AbstractBinaryTree {
         else {
             deleteCaseThree(node);
         }
-
-        return true;
     }
 
+    // Delete Helpers
     // Case 1: No Children
     public void deleteCaseOne(BinaryNode node) {
         BinaryNode parent = node.getParent();
@@ -94,8 +118,7 @@ public class BST extends AbstractBinaryTree {
             } else {
                 node.getParent().setRight(successor);
             }
-        }
-        else {
+        } else {
             root = successor;
         }
 
