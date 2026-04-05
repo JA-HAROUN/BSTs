@@ -45,6 +45,7 @@ public class BST extends AbstractBinaryTree {
 
         size++;
         logger.debug("Inserted node with value {}", v);
+        if (Validator.VALIDATE) Validator.check(this);
         return newNode;
 
     }
@@ -100,6 +101,7 @@ public class BST extends AbstractBinaryTree {
 
         Integer replacementValue = (replacement == null) ? null : replacement.getValue();
         logger.debug("Transplanted node with value {} with node with value {}", toReplace.getValue(), replacementValue);
+        if (Validator.VALIDATE) Validator.check(this);
     }
 
 }

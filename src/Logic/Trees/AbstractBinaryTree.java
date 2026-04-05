@@ -39,6 +39,9 @@ public abstract class AbstractBinaryTree implements BinaryTree {
 
         // Rebalance
         rebalance(node);
+        
+        // Validate structural invariants after modifications
+        if (Validator.VALIDATE) Validator.check(this);
 
         return true;
     }
@@ -51,6 +54,10 @@ public abstract class AbstractBinaryTree implements BinaryTree {
 
         deleteNode(node);
         size--;
+        
+        // Validate structural invariants after modifications
+        if (Validator.VALIDATE) Validator.check(this);
+        
         return true;
     }
 

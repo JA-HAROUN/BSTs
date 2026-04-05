@@ -2,6 +2,7 @@ Logic/Benchmarking/Benchmark.class
 Logic/Trees/BinaryTree.class
 Logic/Trees/RB_Tree.class
 Logic/Nodes/BinaryNode.class
+Logic/Trees/Validator.class
 Logic/Nodes/RB_Node.class
 App.class
 Logic/Benchmarking/BenchmarkRunner$Stats.class

@@ -134,6 +134,7 @@ public class RB_Tree extends AbstractBinaryTree {
 
         size++;
         logger.debug("Inserted node with value {}", v);
+        if (Validator.VALIDATE) Validator.check(this);
         return newNode;
     }
 
@@ -264,6 +265,7 @@ public class RB_Tree extends AbstractBinaryTree {
         }
 
         logger.debug("Deleted node with value {}", node.getValue());
+        if (Validator.VALIDATE) Validator.check(this);
     }
 
     public void deleteFixUp(RB_Node node) {
