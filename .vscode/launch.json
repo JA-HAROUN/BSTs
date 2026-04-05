@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "Assignment 2 BST & RB_Tree_e6a55dc6"
+        },
+        {
+            "type": "java",
+            "name": "Run App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "Assignment 2 BST & RB_Tree",
+            "sourcePaths": [
+                "src"
+            ]
+        }
+    ]
+}

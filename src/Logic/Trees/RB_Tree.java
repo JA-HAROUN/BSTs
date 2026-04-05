@@ -6,58 +6,117 @@ import Logic.Nodes.RB_Node;
 
 public class RB_Tree extends AbstractBinaryTree {
 
+    private final RB_Node NIL;
+
     public RB_Tree() {
         super();
+        NIL = new RB_Node();
+        NIL.setLeft(NIL);
+        NIL.setRight(NIL);
+        NIL.setParent(null);
+        root = NIL;
     }
 
     // RB Tree Helpers
-    public boolean isNIL(RB_Node node) {
-        return node == null || node.getValue() == null;
+    @Override
+    protected boolean isNIL(BinaryNode node) {
+        return node == null || node == NIL;
+    }
+
+    @Override
+    public int height() {
+        if (isNIL(root)) {
+            return 0;
+        }
+        return super.height();
     }
 
     public RB_Node createNode(int v) {
         RB_Node node = new RB_Node(v, RB_Color.RED);
-        RB_Node left = new RB_Node();
-        RB_Node right = new RB_Node();
-        node.setLeft(left);
-        node.setRight(right);
+        node.setLeft(NIL);
+        node.setRight(NIL);
+        node.setParent(null);
+        logger.debug("Created node with value {}", v);
         return node;
     }
 
     public void leftRotate(RB_Node node) {
         RB_Node rightChild = (RB_Node) node.getRight();
+        if (isNIL(rightChild)) {
+            logger.debug("Cannot left rotate on a NIL node");
+            return;
+        }
+
+        // Move rightChild's left subtree to node's right
         node.setRight(rightChild.getLeft());
-        rightChild.setLeft(node);
+        if (!isNIL((RB_Node) rightChild.getLeft())) {
+            rightChild.getLeft().setParent(node);
+        }
+
+        // Link rightChild into node's parent spot
         rightChild.setParent(node.getParent());
+        if (node.getParent() == null) {
+            root = rightChild;
+        } else if (node == node.getParent().getLeft()) {
+            node.getParent().setLeft(rightChild);
+        } else {
+            node.getParent().setRight(rightChild);
+        }
+
+        rightChild.setLeft(node);
         node.setParent(rightChild);
+        logger.debug("Left rotated node with value {}", node.getValue());
     }
 
     public void rightRotate(RB_Node node) {
         RB_Node leftChild = (RB_Node) node.getLeft();
+        if (isNIL(leftChild)) {
+            logger.debug("Cannot right rotate on a NIL node");
+            return;
+        }
+
+        // Move leftChild's right subtree to node's left
         node.setLeft(leftChild.getRight());
-        leftChild.setRight(node);
+        if (!isNIL((RB_Node) leftChild.getRight())) {
+            leftChild.getRight().setParent(node);
+        }
+
+        // Link leftChild into node's parent spot
         leftChild.setParent(node.getParent());
+        if (node.getParent() == null) {
+            root = leftChild;
+        } else if (node == node.getParent().getRight()) {
+            node.getParent().setRight(leftChild);
+        } else {
+            node.getParent().setLeft(leftChild);
+        }
+
+        leftChild.setRight(node);
         node.setParent(leftChild);
+        logger.debug("Right rotated node with value {}", node.getValue());
     }
 
     // Insert
     @Override
     protected BinaryNode insertNode(int v) {
-        if (root == null) {
+        if (isNIL(root)) {
             root = createNode(v);
+            root.setParent(null);
             size++;
+            logger.debug("Inserted node with value {}", v);
             return root;
         }
 
         RB_Node current = (RB_Node) root;
         RB_Node parent = null;
-        while (current != null) {
+        while (!isNIL(current)) {
             parent = current;
-            if (current.getValue() == v) {
+            int currentValue = current.getValue();
+            if (currentValue == v) {
                 // Duplicate
                 return null;
             }
-            if (current.getValue() > v) {
+            if (currentValue > v) {
                 current = (RB_Node) current.getLeft();
             } else {
                 current = (RB_Node) current.getRight();
@@ -74,62 +133,79 @@ public class RB_Tree extends AbstractBinaryTree {
         }
 
         size++;
+        logger.debug("Inserted node with value {}", v);
         return newNode;
     }
 
     @Override
     protected void rebalance(BinaryNode node) {
         RB_Node rbNode = (RB_Node) node;
-        // Case 1: if root is red
+        // Case 1: if root, paint black and done
         if (node == root) {
             rbNode.setColor(RB_Color.BLACK);
+            logger.debug("Root is black");
             return;
         }
 
         RB_Node parent = (RB_Node) node.getParent();
-        RB_Node grandParent = (RB_Node) parent.getParent();
-        RB_Node uncle = null;
-        boolean isLeft = parent.getParent().getLeft() == parent;
-        boolean parentIsLeft = parent.getParent().getLeft() == parent;
-        // get uncle
-        if (isLeft) {
-            uncle = (RB_Node) grandParent.getRight();
-        } else {
-            uncle = (RB_Node) grandParent.getLeft();
+        if (parent == null || parent.getColor() == RB_Color.BLACK) {
+            logger.debug("Parent is black");
+            return;
         }
 
-        // Case 2: Uncle is Red
-        if (uncle.getColor() == RB_Color.RED) {
+        RB_Node grandParent = (RB_Node) parent.getParent();
+        if (grandParent == null) {
+            parent.setColor(RB_Color.BLACK);
+            logger.debug("Parent is black");
+            return;
+        }
+
+        boolean isLeft = grandParent.getLeft() == parent;
+        RB_Node uncle = isLeft ? (RB_Node) grandParent.getRight()
+                               : (RB_Node) grandParent.getLeft();
+
+        // Case 2: Uncle is Red → recolor and recurse up
+        if (!isNIL(uncle) && uncle.getColor() == RB_Color.RED) {
             parent.setColor(RB_Color.BLACK);
             uncle.setColor(RB_Color.BLACK);
             grandParent.setColor(RB_Color.RED);
             rebalance(grandParent);
+            logger.debug("Uncle is red");
+            return;
         }
-        // Case 3 & 4: Uncle is Black
-        else {
-            // Case 3: Triangle
-            if (isLeft && parent.getRight() == node) {
-                leftRotate(parent);
-                node = parent;
-                parent = (RB_Node) node.getParent();
-            } else if (!isLeft && parent.getLeft() == node) {
-                rightRotate(parent);
-                node = parent;
-                parent = (RB_Node) node.getParent();
-            }
 
-            // Case 4: Line
-            else if (isLeft && parentIsLeft) {
-                rightRotate(grandParent);
-                parent.setColor(RB_Color.BLACK);
-                grandParent.setColor(RB_Color.RED);
-            } else if (!isLeft && !parentIsLeft) {
-                leftRotate(grandParent);
-                parent.setColor(RB_Color.BLACK);
-                grandParent.setColor(RB_Color.RED);
-            }
+        // Uncle is Black
+        // Case 3: Triangle
+        // convert to line
+        // fall through to Case 4
+        if (isLeft && parent.getRight() == node) {
+            // node is right child of a left-parent → left-rotate parent to make a line
+            leftRotate(parent);
+            rbNode = parent;           // rbNode is now the lower node after rotation
+            parent = (RB_Node) rbNode.getParent();
+            logger.debug("Triangle case");
+        } else if (!isLeft && parent.getLeft() == node) {
+            // node is left child of a right-parent → right-rotate parent to make a line
+            rightRotate(parent);
+            rbNode = parent;
+            parent = (RB_Node) rbNode.getParent();
+            logger.debug("Triangle case");
         }
+
+        // Case 4: Line
+        // rotate grandparent
+        // recolor
+        grandParent = (RB_Node) parent.getParent();
+        if (parent == grandParent.getLeft()) {
+            rightRotate(grandParent);
+        } else {
+            leftRotate(grandParent);
+        }
+        parent.setColor(RB_Color.BLACK);
+        grandParent.setColor(RB_Color.RED);
+        logger.debug("Line case");
     }
+
 
     // Delete Helpers
     // u is the node to be replaced, v is the node to replace u
@@ -142,6 +218,8 @@ public class RB_Tree extends AbstractBinaryTree {
             u.getParent().setRight(v);
         }
         v.setParent(u.getParent());
+        Integer replacementValue = isNIL(v) ? null : v.getValue();
+        logger.debug("Transplanted node with value {} with node with value {}", u.getValue(), replacementValue);
     }
 
     @Override
@@ -184,6 +262,8 @@ public class RB_Tree extends AbstractBinaryTree {
         if (originalColor == RB_Color.BLACK) {
             deleteFixUp(x);
         }
+
+        logger.debug("Deleted node with value {}", node.getValue());
     }
 
     public void deleteFixUp(RB_Node node) {
@@ -192,11 +272,15 @@ public class RB_Tree extends AbstractBinaryTree {
 
         while (current != root && current.getColor() == RB_Color.BLACK) {
             RB_Node parent = (RB_Node) current.getParent();
+            if (parent == null) {
+                break;
+            }
             boolean isLeft = parent.getLeft() == current;
             sibling = isLeft ? (RB_Node) parent.getRight() : (RB_Node) parent.getLeft();
 
             // Case 1: sibling is red
             if (sibling.getColor() == RB_Color.RED) {
+                logger.debug("Case 1: sibling is red");
                 sibling.setColor(RB_Color.BLACK);
                 parent.setColor(RB_Color.RED);
                 if (isLeft) {
@@ -212,12 +296,14 @@ public class RB_Tree extends AbstractBinaryTree {
             // Case 2: both of sibling's children are black
             if (((RB_Node) sibling.getLeft()).getColor() == RB_Color.BLACK
                     && ((RB_Node) sibling.getRight()).getColor() == RB_Color.BLACK) {
+                logger.debug("Case 2: sibling's children are black");
                 sibling.setColor(RB_Color.RED);
                 current = parent;
             }
 
             else {
                 // Case 3: sibling's near child is red, far child is black
+                logger.debug("Case 3: sibling's near child is red, far child is black");
                 if (isLeft && ((RB_Node) sibling.getLeft()).getColor() == RB_Color.RED
                         && ((RB_Node) sibling.getRight()).getColor() == RB_Color.BLACK) {
                     ((RB_Node) sibling.getLeft()).setColor(RB_Color.BLACK);
@@ -233,6 +319,7 @@ public class RB_Tree extends AbstractBinaryTree {
                 }
 
                 // Case 4: sibling's far child is red
+                logger.debug("Case 4: sibling's far child is red");
                 sibling.setColor(parent.getColor());
                 parent.setColor(RB_Color.BLACK);
                 if (isLeft) {
@@ -247,6 +334,11 @@ public class RB_Tree extends AbstractBinaryTree {
         }
 
         current.setColor(RB_Color.BLACK);
+        if (isNIL(root)) {
+            NIL.setParent(null);
+        }
+        Integer nodeValue = isNIL(node) ? null : node.getValue();
+        logger.debug("Deleted node with value {}", nodeValue);
     }
 
 }

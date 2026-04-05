@@ -3,9 +3,14 @@ package Logic.Trees;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import Logic.Nodes.BinaryNode;
 
 public abstract class AbstractBinaryTree implements BinaryTree {
+
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractBinaryTree.class.getName());
 
     BinaryNode root;
     int size;
@@ -17,6 +22,11 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         size = 0;
         orderedSet = new ArrayList<>();
         stack = new Stack<>();
+    }
+
+    // Checks if a node is effectively empty (null or a NIL sentinel)
+    protected boolean isNIL(BinaryNode node) {
+        return node == null || node.getValue() == null;
     }
 
     // Basic Tree Operations
@@ -61,6 +71,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         orderedSet.clear();
         stack.clear();
         inTraverse(root);
+        logger.debug("In-order traversal: {}", orderedSet);
         return orderedSet.stream().mapToInt(i -> i).toArray();
     }
 
@@ -72,38 +83,45 @@ public abstract class AbstractBinaryTree implements BinaryTree {
 
         BinaryNode current = root;
 
-        while (current != null && current.getValue() != v) {
-            if (current.getValue() == v) {
+        while (current != null && current.getValue() != null) {
+            int currentValue = current.getValue();
+            if (currentValue == v) {
+                logger.debug("Found node with value {}", v);
                 return current;
-            } else if (current.getValue() >= v) {
-                // go left
+            } else if (currentValue > v) {
+                logger.debug("Going left from node with value {}", currentValue);
                 current = current.getLeft();
             } else {
-                // go right
+                logger.debug("Going right from node with value {}", currentValue);
                 current = current.getRight();
             }
         }
 
+        logger.debug("Node with value {} not found", v);
         return null;
     }
 
     public BinaryNode successorChild(BinaryNode node) {
         BinaryNode current = node.getRight();
-        while (current.getLeft() != null) {
+        while (!isNIL(current.getLeft())) {
             current = current.getLeft();
         }
+        logger.debug("Successor child of node with value {} is node with value {}", node.getValue(), current.getValue());
         return current;
     }
 
     public BinaryNode successorTree(BinaryNode node) {
         if (node.getRight() != null) {
             return successorChild(node);
-        } else {
+        } 
+        else {
             BinaryNode parent = node.getParent();
             while (parent != null && parent.getLeft() != node) {
                 node = parent;
                 parent = node.getParent();
             }
+            Integer parentValue = (parent == null) ? null : parent.getValue();
+            logger.debug("Successor tree of node with value {} is node with value {}", node.getValue(), parentValue);
             return parent;
         }
     }
@@ -113,6 +131,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         while (current.getRight() != null) {
             current = current.getRight();
         }
+        logger.debug("Predecessor child of node with value {} is node with value {}", node.getValue(), current.getValue());
         return current;
     }
 
@@ -125,13 +144,15 @@ public abstract class AbstractBinaryTree implements BinaryTree {
                 node = parent;
                 parent = node.getParent();
             }
+            Integer parentValue = (parent == null) ? null : parent.getValue();
+            logger.debug("Predecessor tree of node with value {} is node with value {}", node.getValue(), parentValue);
             return parent;
         }
     }
 
     // Tree Traversals
     public void inTraverse(BinaryNode node) {
-        if (node == null) {
+        if (isNIL(node)) {
             return;
         }
 
@@ -145,7 +166,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
     }
 
     public void preTraverse(BinaryNode node) {
-        if (node == null) {
+        if (isNIL(node)) {
             return;
         }
 
@@ -154,17 +175,17 @@ public abstract class AbstractBinaryTree implements BinaryTree {
         while (!stack.isEmpty()) {
             node = stack.pop();
             orderedSet.add(node.getValue());
-            if (node.getRight() != null) {
+            if (!isNIL(node.getRight())) {
                 stack.push(node.getRight());
             }
-            if (node.getLeft() != null) {
+            if (!isNIL(node.getLeft())) {
                 stack.push(node.getLeft());
             }
         }
     }
 
     public void postTraverse(BinaryNode node) {
-        if (node == null) {
+        if (isNIL(node)) {
             return;
         }
 
@@ -175,7 +196,7 @@ public abstract class AbstractBinaryTree implements BinaryTree {
             goDeepRight(node.getLeft());
             // Go Deep right
             BinaryNode iterator = node.getLeft();
-            while (iterator != null) {
+            while (!isNIL(iterator)) {
                 stack.push(iterator);
                 iterator = iterator.getRight();
             }
@@ -183,14 +204,14 @@ public abstract class AbstractBinaryTree implements BinaryTree {
     }
 
     public void goDeepLeft(BinaryNode node) {
-        while (node != null) {
+        while (!isNIL(node)) {
             stack.push(node);
             node = node.getLeft();
         }
     }
 
     public void goDeepRight(BinaryNode node) {
-        while (node != null) {
+        while (!isNIL(node)) {
             stack.push(node);
             node = node.getRight();
         }
@@ -199,10 +220,10 @@ public abstract class AbstractBinaryTree implements BinaryTree {
     public int DFS(BinaryNode node) {
         int leftHeight = 0;
         int rightHeight = 0;
-        if (node.getLeft() != null) {
+        if (!isNIL(node.getLeft())) {
             leftHeight = DFS(node.getLeft());
         }
-        if (node.getRight() != null) {
+        if (!isNIL(node.getRight())) {
             rightHeight = DFS(node.getRight());
         }
         return Math.max(leftHeight, rightHeight) + 1;

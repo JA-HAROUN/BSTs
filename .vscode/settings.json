@@ -1,0 +1,9 @@
+{
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/home/joey/Downloads/slf4j-simple-1.7.36.jar",
+        "/home/joey/Downloads/slf4j-api-1.7.36.jar"
+    ]
+}

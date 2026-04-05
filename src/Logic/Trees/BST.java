@@ -15,6 +15,7 @@ public class BST extends AbstractBinaryTree {
         if (root == null) {
             root = new BinaryNode(v);
             size++;
+            logger.debug("Inserted node with value {}", v);
             return root;
         }
 
@@ -24,6 +25,7 @@ public class BST extends AbstractBinaryTree {
             parent = current;
             if (current.getValue() == v) {
                 // Duplicate
+                logger.debug("Node with value {} already exists", v);
                 return null;
             }
             if (current.getValue() > v) {
@@ -42,6 +44,7 @@ public class BST extends AbstractBinaryTree {
         }
 
         size++;
+        logger.debug("Inserted node with value {}", v);
         return newNode;
 
     }
@@ -54,74 +57,49 @@ public class BST extends AbstractBinaryTree {
     // Delete
     @Override
     protected void deleteNode(BinaryNode node) {
-        boolean hasLeftChild = node.getLeft() != null;
-        boolean hasRightChild = node.getRight() != null;
-        // Case 1: No Children
-        if (!hasLeftChild && !hasRightChild) {
-            deleteCaseOne(node);
+        if (node.getLeft() == null) {
+            transplant(node, node.getRight());
+            logger.debug("Deleted node with value {}", node.getValue());
+            return;
         }
-        // Case 2: One Child
-        else if (hasLeftChild && !hasRightChild || !hasLeftChild && hasRightChild) {
-            deleteCaseTwo(node);
-        }
-        // Case 3: Two Children
-        else {
-            deleteCaseThree(node);
-        }
-    }
 
-    // Delete Helpers
-    // Case 1: No Children
-    public void deleteCaseOne(BinaryNode node) {
-        BinaryNode parent = node.getParent();
-        if (parent.getLeft() == node) {
-            parent.setLeft(null);
-        } else {
-            parent.setRight(null);
+        if (node.getRight() == null) {
+            transplant(node, node.getLeft());
+            logger.debug("Deleted node with value {}", node.getValue());
+            return;
         }
-    }
 
-    // Case 2: One Child
-    public void deleteCaseTwo(BinaryNode node) {
-        BinaryNode parent = node.getParent();
-        if (node.getLeft() != null) {
-            node.getLeft().setParent(parent);
-            parent.setLeft(node.getLeft());
-        } else {
-            node.getRight().setParent(parent);
-            parent.setRight(node.getRight());
-        }
-    }
-
-    // Case 3: Two Children
-    public void deleteCaseThree(BinaryNode node) {
         BinaryNode successor = successorChild(node);
-        // Cut successor
-        BinaryNode successorParent = successor.getParent();
-        if (successorParent.getLeft() == successor) {
-            successorParent.setLeft(successor.getRight());
-        } else {
-            successorParent.setRight(successor.getRight());
+
+        if (successor.getParent() != node) {
+            transplant(successor, successor.getRight());
+            successor.setRight(node.getRight());
+            successor.getRight().setParent(successor);
         }
 
-        // Connect successor
+        transplant(node, successor);
         successor.setLeft(node.getLeft());
-        successor.setRight(node.getRight());
-        successor.setParent(node.getParent());
+        successor.getLeft().setParent(successor);
+        logger.debug("Deleted node with value {}", node.getValue());
+    }
 
-        // replace connection
-        node.getRight().setParent(successor);
-        node.getLeft().setParent(successor);
-        if (node.getParent() != null) {
-            if (node.getParent().getLeft() == node) {
-                node.getParent().setLeft(successor);
-            } else {
-                node.getParent().setRight(successor);
-            }
+    private void transplant(BinaryNode toReplace, BinaryNode replacement) {
+        BinaryNode parent = toReplace.getParent();
+
+        if (parent == null) {
+            root = replacement;
+        } else if (parent.getLeft() == toReplace) {
+            parent.setLeft(replacement);
         } else {
-            root = successor;
+            parent.setRight(replacement);
         }
 
+        if (replacement != null) {
+            replacement.setParent(parent);
+        }
+
+        Integer replacementValue = (replacement == null) ? null : replacement.getValue();
+        logger.debug("Transplanted node with value {} with node with value {}", toReplace.getValue(), replacementValue);
     }
 
 }
