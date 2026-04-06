@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: Logic.Trees.RBTreeTest
--------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in Logic.Trees.RBTreeTest
